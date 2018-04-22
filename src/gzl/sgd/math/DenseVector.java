@@ -367,14 +367,13 @@ public class DenseVector implements Serializable {
         return result;
     }
 
-    //todo
+    //write by gzl
     public DenseVector mult(DenseMatrix mat){
+    	DenseVector res = new DenseVector(mat.numColumns);
     	for(int i=0;i<mat.numRows;i++){
-    		for(int j=0;j<mat.numColumns;j++){
-    			
-    		}
+    		res.set(i, this.inner(mat.column(i)));
     	}
-    	return this;
+    	return res;
     }
     /**
      * Do vector operation: {@code a * b^t}

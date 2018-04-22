@@ -22,7 +22,11 @@ public class SimpleSGD {
 	
 	public static void main(String[] args) throws Exception{
 		
-		A=new SparseMatrix(trainMatrix);
+		
+		numUsers=DataSet.userNumber;
+		numItems=DataSet.itemNumber;
+		A=new SparseMatrix(numUsers,numItems);
+		A=DataSet.readDataSet("dataset.txt");
 		U=new DenseMatrix(numUsers, numFactors);
 		V=new DenseMatrix(numFactors, numItems);
 		double initMean=0.0f;
@@ -52,18 +56,20 @@ public class SimpleSGD {
 				}
 			}
 			
+			
+			
 		}
 		//System.out.println("right");
 	}
 	
 	public static double LossOfRow(int i,SparseMatrix A,DenseMatrix U,DenseMatrix V) throws Exception{
 		DenseVector U_i=U.row(i);
-		DenseVector A_i_approx=V.mult(U_i); //todo
+		DenseVector A_i_approx=U_i.mult(V); //implement by gzl
 		double loss=0;
 		double square=0;
 		double count=0;
-		for(VectorEntry j : A.row(i)){
-			loss=A_i_approx.get(j.index())-A.get(i, j.index());
+		for(int j=0;j< A.numRows;j++){
+			loss=A_i_approx.get(j)-A.get(i, j);
 			square+=loss*loss;
 			count+=1;
 		}
@@ -72,12 +78,12 @@ public class SimpleSGD {
 	
 	public static double LossOfCol(int j,SparseMatrix A,DenseMatrix U,DenseMatrix V) throws Exception{
 		DenseVector V_j=V.column(j);
-		DenseVector A_j_approx=U.mult(V_j);//todo
+		DenseVector A_j_approx=V_j.mult(U);//implement by gzl
 		double loss=0;
 		double square=0;
 		double count=0;
-		for(VectorEntry i : A.column(j)){
-			loss=A_j_approx.get(i.index())-A.get(i.index(), j);
+		for(int i=0;i<A.numColumns;i++){
+			loss=A_j_approx.get(i)-A.get(i, j);
 			square+=loss*loss;
 			count+=1;
 		}

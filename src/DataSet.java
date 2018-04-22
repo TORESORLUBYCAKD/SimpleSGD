@@ -1,21 +1,20 @@
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-/**
- * Created with IntelliJ IDEA.
- * User: tpeng
- * Date: 6/22/12
- * Time: 11:01 PM
- * To change this template use File | Settings | File Templates.
- */
+import gzl.sgd.math.SparseMatrix;
+
+
 public class DataSet {
 
-    public static List<Instance> readDataSet(String file) throws FileNotFoundException {
-        List<Instance> dataset = new ArrayList<Instance>();
+	public static int userNumber=943;
+	public static int itemNumber=1330;
+	
+	
+    public static SparseMatrix readDataSet(String file) throws FileNotFoundException {
+    	SparseMatrix dataset = new SparseMatrix(userNumber,itemNumber);
         Scanner scanner = new Scanner(new File(file));
         while(scanner.hasNextLine()) {
             String line = scanner.nextLine();
@@ -24,18 +23,14 @@ public class DataSet {
             }
             String[] columns = line.split("\\t");
 
-            // skip first column and last column is the label
-            int i = 1;
-            double[] data = new double[3];
-            data[0] = 1.0;
-            data[1] = Double.parseDouble(columns[0]);
-            data[2] = Double.parseDouble(columns[1]);
-//            for (i=1; i<columns.length-1; i++) {
-//                data[i-1] = Integer.parseInt(columns[i]);
-//            }
-            int label = Integer.parseInt(columns[2]);
-            Instance instance = new Instance(label, data);
-            dataset.add(instance);
+            int[] data = new int[3];
+            data[0] = Integer.parseInt(columns[0]);
+            data[1] = Integer.parseInt(columns[1]);
+            //data[2] =Integer.parseInt(columns[2]);
+            double label = Double.parseDouble(columns[2]);
+            //Instance instance = new Instance(label, data);
+            //System.out.println(" user: "+data[0]+" item: "+data[1]+" rating: "+data[2]);
+            dataset.set(data[0], data[1], label);
         }
         return dataset;
     }
