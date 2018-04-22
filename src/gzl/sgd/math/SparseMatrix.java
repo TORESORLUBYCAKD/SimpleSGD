@@ -248,6 +248,7 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
             rowPtr[i] = rowPtr[i - 1] + cols.size();
 
             for (int col : cols) {
+            	//System.out.println("col number: "+col);
                 colInd[j++] = col;
                 if (col < 0 || col >= numColumns)
                     throw new IllegalArgumentException("colInd[" + j + "]=" + col
@@ -317,9 +318,8 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
      * @param val    value to set
      */
     public void set(int row, int column, double val) {
-    	System.out.println("row: "+row+" col: "+column);
+   
         int index = getCRSIndex(row, column);
-        System.out.println("index: "+index);
         rowData[index] = val;
 
         index = getCCSIndex(row, column);
@@ -910,8 +910,6 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
      * @param col  the index of column
      */
     private int getCRSIndex(int row, int col) {
-    	System.out.println("2row: "+row+" col: "+col+"colInd: "+colInd);
-    	System.out.println("rowPtr[row]: "+rowPtr[row]+"rowPtr[row + 1]: "+rowPtr[row + 1]);
         int i = Arrays.binarySearch(colInd, rowPtr[row], rowPtr[row + 1], col);
 
         if (i >= 0 && colInd[i] == col)

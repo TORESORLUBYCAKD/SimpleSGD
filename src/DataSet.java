@@ -14,8 +14,8 @@ import gzl.sgd.math.SparseMatrix;
 
 public class DataSet {
 
-	public static int userNumber=943;
-	public static int itemNumber=1440;
+	public static int userNumber=2943;
+	public static int itemNumber=2440;
 	
 	
     public static SparseMatrix readDataSet(String file) throws FileNotFoundException {
@@ -33,15 +33,15 @@ public class DataSet {
             int[] data = new int[3];
             data[0] = Integer.parseInt(columns[0]);
             data[1] = Integer.parseInt(columns[1]);
-            //data[2] =Integer.parseInt(columns[2]);
             double label = Double.parseDouble(columns[2]);
             //Instance instance = new Instance(label, data);
-            //System.out.println(" user: "+data[0]+" item: "+data[1]+" rating: "+data[2]);
+            //System.out.println(" user: "+data[0]+" item: "+data[1]+" rating: "+label);
             //dataset.set(data[0], data[1], label);
             dataTable.put(data[0], data[1], label);
             colMap.put(data[0], data[1]);
         }
         dataset=new SparseMatrix(userNumber,itemNumber,dataTable,colMap);
+        dataTable = null;
         return dataset;
     }
 }
