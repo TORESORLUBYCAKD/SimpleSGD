@@ -265,9 +265,11 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
 
         j = 0;
         for (int i = 1; i <= numColumns; ++i) {
+        	//优化导致IllegalArgumentException
             // dataTable.col(i-1) is more time-consuming than columnStructure.get(i-1)
-            Collection<Integer> rows = columnStructure != null ? columnStructure.get(i - 1) : dataTable.column(i - 1)
-                    .keySet();
+//            Collection<Integer> rows = columnStructure != null ? columnStructure.get(i - 1) : dataTable.column(i - 1)
+//                    .keySet();
+        	Set<Integer> rows=dataTable.column(i-1).keySet();
             colPtr[i] = colPtr[i - 1] + rows.size();
 
             for (int row : rows) {
@@ -926,6 +928,11 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
      * @param col  the index of column
      */
     private int getCCSIndex(int row, int col) {
+//    	System.out.print("row:"+row);
+//    	for(int tmp=colPtr[col];tmp<=colPtr[col+1];tmp++){
+//    		System.out.print(" "+rowInd[tmp]);
+//    	}System.out.println("");
+    	
         int i = Arrays.binarySearch(rowInd, colPtr[col], colPtr[col + 1], row);
 
         if (i >= 0 && rowInd[i] == row)

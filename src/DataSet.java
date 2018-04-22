@@ -14,8 +14,8 @@ import gzl.sgd.math.SparseMatrix;
 
 public class DataSet {
 
-	public static int userNumber=2943;
-	public static int itemNumber=2440;
+	public static int userNumber=2500;
+	public static int itemNumber=2500;
 	
 	
     public static SparseMatrix readDataSet(String file) throws FileNotFoundException {
