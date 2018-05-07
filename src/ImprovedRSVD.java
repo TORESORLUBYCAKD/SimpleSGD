@@ -53,7 +53,7 @@ public class ImprovedRSVD {
 			int itemIdx=rand2.nextInt(numItems-1);	
 			DenseVector U_i=U.row(userIdx);
 			DenseVector V_j=V.column(itemIdx);
-			double r_ij=TrainMatrix.get(userIdx, itemIdx)-U_i.inner(V_j);
+			double r_ij=TrainMatrix.get(userIdx, itemIdx)-U_i.inner(V_j)-ci.get(userIdx)-dj.get(itemIdx);
 			for(int k=0;k<numFactors;k++){
 				U.set(userIdx, k, U.get(userIdx, k)+lrate*(r_ij*V.get(k, itemIdx)-lamda*U.get(userIdx, k)));
 				V.set(k, itemIdx, V.get(k, itemIdx)+lrate*(r_ij*U.get(userIdx, k)-lamda*V.get(k, itemIdx)));
@@ -64,10 +64,10 @@ public class ImprovedRSVD {
 			if(cnt%50000==0){
 				preloss=curloss;
 				curloss=Loss(TestMatrix,U,V);
-				if(Math.abs(preloss-curloss)<1E-8){
-					System.out.println("preloss: "+preloss+"curloss: "+curloss);
-					break;
-				}
+//				if(preloss<curloss){
+//					System.out.println("preloss: "+preloss+"curloss: "+curloss);
+//					break;
+//				}
 				System.out.println("Total Training Loss: "+Loss(TrainMatrix,U,V));
 				System.out.println("Total Testing Loss: "+curloss);
 			}			
@@ -91,7 +91,7 @@ public class ImprovedRSVD {
 				}				
 			}
 		}
-		return square/count;
+		return Math.sqrt(square/count);
 	}
 
 }
