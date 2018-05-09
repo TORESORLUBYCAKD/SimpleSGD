@@ -81,7 +81,7 @@ public class RSVD {
 				}				
 			}
 		}
-		return square/count;
+		return Math.sqrt(square/count);
 	}
 
 }

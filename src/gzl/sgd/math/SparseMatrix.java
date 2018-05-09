@@ -26,10 +26,14 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
+
+
 import gzl.sgd.algorithm.Stats;
 
 import java.io.Serializable;
 import java.util.*;
+
+
 
 /**
  * Data Structure: Sparse Matrix whose implementation is modified from M4J library.
@@ -131,7 +135,7 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
 
         copyCCS(c, mat.colPtr, mat.rowInd);
     }
-
+    
     private void copyCRS(double[] data, int[] ptr, int[] idx) {
         rowData = new double[data.length];
         for (int i = 0; i < rowData.length; i++) {
@@ -250,7 +254,7 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
             for (int col : cols) {
             	//System.out.println("col number: "+col);
                 colInd[j++] = col;
-                if (col < 0 || col >= numColumns)
+                if (col < 0 || col > numColumns)
                     throw new IllegalArgumentException("colInd[" + j + "]=" + col
                             + ", which is not a valid column index");
             }
@@ -267,14 +271,14 @@ public class SparseMatrix implements Iterable<MatrixEntry>, DataMatrix, Serializ
         for (int i = 1; i <= numColumns; ++i) {
         	//优化导致IllegalArgumentException
             // dataTable.col(i-1) is more time-consuming than columnStructure.get(i-1)
-//            Collection<Integer> rows = columnStructure != null ? columnStructure.get(i - 1) : dataTable.column(i - 1)
-//                    .keySet();
-        	Set<Integer> rows=dataTable.column(i-1).keySet();
+            Collection<Integer> rows = columnStructure != null ? columnStructure.get(i - 1) : dataTable.column(i - 1)
+                    .keySet();
+        	//Set<Integer> rows=dataTable.column(i-1).keySet();
             colPtr[i] = colPtr[i - 1] + rows.size();
 
             for (int row : rows) {
                 rowInd[j++] = row;
-                if (row < 0 || row >= numRows)
+                if (row < 0 || row > numRows)
                     throw new IllegalArgumentException("rowInd[" + j + "]=" + row + ", which is not a valid row index");
             }
 

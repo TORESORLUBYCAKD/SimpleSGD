@@ -3,20 +3,23 @@ import gzl.sgd.math.DenseMatrix;
 import gzl.sgd.math.DenseVector;
 import gzl.sgd.math.SparseMatrix;
 import gzl.sgd.math.VectorEntry;
+import gzl.sgd.math.GMatrix;
 
 public class SimpleSGD {
 
-	public static int numIterations=10;
-	public static int numFactors=10;
-	public static double lamda=0.1;
-	public static double h=0.1;
+	public static int numIterations=100;
+	public static int numFactors=20;
+	public static double lamda=0.02;
+	public static double lamda2=0.05;
+	public static double lrate=0.001;
+	public static double global_mean=3.6033;
 	
 	public static int numUsers;
 	public static int numItems;
 	public static int numRates;
 	
-	public static SparseMatrix trainMatrix;
-	public static SparseMatrix testMatrix;
+	public static GMatrix trainMatrix;
+	public static GMatrix testMatrix;
 	public static SparseMatrix A;
 	public static SparseMatrix B;
 	public static DenseMatrix U;
@@ -25,46 +28,42 @@ public class SimpleSGD {
 	public static void main(String[] args) throws Exception{
 		
 		
-		numUsers=DataSet.userNumber;
-		numItems=DataSet.itemNumber;
-		A=new SparseMatrix(numUsers,numItems);
-		A=DataSet.readDataSet("dataset.txt");
-//		B=new SparseMatrix(numUsers,numItems);
-//		B=DataSet.readDataSet("testSet.txt");
+		trainMatrix=new GMatrix(0,0);
+		trainMatrix=trainMatrix.loadData("trainingset");
+		testMatrix=new GMatrix(0,0);
+		testMatrix=testMatrix.loadData("testingset");
+		numUsers=trainMatrix.numRows;
+		numItems=trainMatrix.numColumns;
+		System.out.print("numUsers: "+numUsers+"numItems: "+numItems);
 		U=new DenseMatrix(numUsers, numFactors);
 		V=new DenseMatrix(numFactors, numItems);
 		double initMean=0.0f;
 		double initStd=0.1f;
 		U.init(initMean,initStd);
 		V.init(initMean,initStd);
+		double preloss=100,curloss=10,cnt=0;
 		double y,y_delta,derivative ;
 		for (int iter = 1; iter <= numIterations; iter++) {
-			
-			for (int userIdx = 0; userIdx < numUsers; userIdx++) {
-				for (int factorIdx = 0; factorIdx < numFactors; factorIdx++) {
-					y=LossOfRow(userIdx,A,U,V);
-					U.add(userIdx, factorIdx, h);
-					y_delta=LossOfRow(userIdx,A,U,V);
-					derivative =(y_delta-y)/h;
-					U.set(userIdx, factorIdx, U.get(userIdx, factorIdx)-h-lamda*derivative);
-				}
-			}
-			
-			for (int factorIdx = 0; factorIdx < numFactors; factorIdx++) {
-				for (int itemIdx = 0; itemIdx < numItems; itemIdx++) {
-					y=LossOfCol(itemIdx,A,U,V);
-					//System.out.println("itemIdx: "+itemIdx+" factorIdx: "+factorIdx);
-					V.add(factorIdx,itemIdx, h);
-					y_delta=LossOfCol(itemIdx,A,U,V);
-					derivative =(y_delta-y)/h;
-					V.set(factorIdx, itemIdx, V.get(factorIdx, itemIdx)-h-lamda*derivative);
-				}
-			}
+			for(int userIdx = 1; userIdx <numUsers; userIdx++){
+				for(int itemIdx = 1; itemIdx <numItems; itemIdx++){
+					DenseVector U_i=new DenseVector(numFactors);
+							U_i=U.row(userIdx-1);
+					DenseVector V_j=new DenseVector(numFactors);
+							V_j=V.column(itemIdx-1);
+					double r_ij=A.get(userIdx, itemIdx)-U_i.inner(V_j);
+					for(int k=0;k<numFactors;k++){
+						U.set(userIdx-1, k, U.get(userIdx-1, k)+lrate*(r_ij*V.get(k, itemIdx-1)-lamda*U.get(userIdx-1, k)));
+						V.set(k, itemIdx-1, V.get(k, itemIdx-1)+lrate*(r_ij*U.get(userIdx-1, k)-lamda*V.get(k, itemIdx-1)));
+					}	
+				}				
+			}  
+			preloss=curloss;
+			curloss=Loss(B,U,V);
+			System.out.println("Iteration: "+(iter));
 			System.out.println("Total Training Loss: "+Loss(A,U,V));
-			//System.out.println("Total Testing Loss: "+Loss(B,U,V));
+			System.out.println("Total Testing Loss: "+curloss);
 		}
-		B=new SparseMatrix(numUsers,numItems);
-		B=DataSet.readDataSet("testSet.txt");
+		
 		System.out.println("Total Testing Loss: "+Loss(B,U,V));
 		//System.out.println("right");
 	}
@@ -75,47 +74,21 @@ public class SimpleSGD {
 		double square=0;
 		double count=0;
 		A_approx=U.mult(V);
-		for(int i=0;i<A.numRows;i++){
-			for(int j=0;j<A.numColumns;j++){
+		for(int i=1;i<A.numRows;i++){
+			for(int j=1;j<A.numColumns;j++){
 				if(A.get(i, j)!=0){
-					loss=A_approx.get(i, j)-A.get(i, j);
-					square=loss*loss;
+//					DenseVector U_i=new DenseVector(numFactors);
+//					U_i=U.row(i-1);
+//					DenseVector V_j=new DenseVector(numFactors);
+//					V_j=V.column(j-1);
+//					loss=A.get(i, j)-U_i.inner(V_j);
+					loss=A_approx.get(i-1, j-1)-A.get(i,j);
+					square+=loss*loss;
 					count+=1;
 				}				
 			}
 		}
-		return square/count;
+		return Math.sqrt(square/count);
 	}
 	
-	public static double LossOfRow(int i,SparseMatrix A,DenseMatrix U,DenseMatrix V) throws Exception{
-		DenseVector U_i=U.row(i);
-		DenseVector A_i_approx=U_i.mult(V); //implement by gzl
-		double loss=0;
-		double square=0;
-		double count=0;
-		for(int j=0;j< A.numColumns;j++){
-			if(A.get(i, j)!=0){
-				loss=A_i_approx.get(j)-A.get(i, j);
-				square+=loss*loss;
-				count+=1;
-			}			
-		}
-		return square/count;
-	}
-	
-	public static double LossOfCol(int j,SparseMatrix A,DenseMatrix U,DenseMatrix V) throws Exception{
-		DenseVector V_j=V.column(j);
-		DenseVector A_j_approx=U.mult(V_j);//implement by gzl
-		double loss=0;
-		double square=0;
-		double count=0;
-		for(int i=0;i<A.numRows;i++){
-			if(A.get(i, j)!=0){
-				loss=A_j_approx.get(i)-A.get(i, j);
-				square+=loss*loss;
-				count+=1;
-			}			
-		}
-		return square/count;
-	}
 }
